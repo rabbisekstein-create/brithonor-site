@@ -1,0 +1,1464 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Brit Honor</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#F2F0F0; --surface:#FFFFFF; --surface-2:#FAF8F8;
+  --ink:#1A171B; --muted:#6E6569; --faint:#958B90;
+  --line:#E3DEDE; --line-strong:#CFC7C8;
+  --accent:#8C2F39; --accent-ink:#FFFFFF; --accent-soft:#F6EAEB;
+  --gold:#8C6D33; --gold-soft:#F3EDE0;
+  --ok:#2E6A50; --ok-soft:#E6F0EA;
+  --wait:#8A5E1F; --wait-soft:#F6EEDF;
+  --shadow:0 1px 2px rgba(26,23,27,.06), 0 6px 18px rgba(26,23,27,.05);
+  --display:"Frank Ruhl Libre", Georgia, "Times New Roman", serif;
+  --ui:"IBM Plex Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#17151A; --surface:#201D23; --surface-2:#262229;
+    --ink:#ECE8EA; --muted:#9A9096; --faint:#7C7278;
+    --line:#332E36; --line-strong:#463F4A;
+    --accent:#E28C95; --accent-ink:#2A1418; --accent-soft:#3A242A;
+    --gold:#C9A464; --gold-soft:#2E2820;
+    --ok:#74C29A; --ok-soft:#1E2E27;
+    --wait:#D6A65C; --wait-soft:#2E2618;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#17151A; --surface:#201D23; --surface-2:#262229;
+  --ink:#ECE8EA; --muted:#9A9096; --faint:#7C7278;
+  --line:#332E36; --line-strong:#463F4A;
+  --accent:#E28C95; --accent-ink:#2A1418; --accent-soft:#3A242A;
+  --gold:#C9A464; --gold-soft:#2E2820;
+  --ok:#74C29A; --ok-soft:#1E2E27;
+  --wait:#D6A65C; --wait-soft:#2E2618;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--ui); font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{margin:0; text-wrap:balance; font-weight:600}
+p{margin:0}
+button{font:inherit; cursor:pointer}
+input,select,textarea{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:3px}
+
+/* ---------- chrome ---------- */
+.topbar{
+  position:sticky; top:env(safe-area-inset-top, 0px); z-index:20;
+  background:var(--surface); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:14px flex-wrap;
+  padding:10px 16px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:baseline; gap:9px; margin-right:auto}
+.brand .mark{
+  font-family:var(--display); font-size:19px; font-weight:700;
+  letter-spacing:-.01em; color:var(--ink);
+}
+.brand .mark em{font-style:normal; color:var(--accent)}
+.brand .sub{
+  font-size:11px; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--faint);
+}
+.seg{display:flex; border:1px solid var(--line-strong); border-radius:7px; overflow:hidden}
+.seg button{
+  background:var(--surface); color:var(--muted); border:0;
+  padding:6px 13px; font-size:13px; font-weight:500;
+}
+.seg button+button{border-left:1px solid var(--line-strong)}
+.seg button[aria-pressed="true"]{background:var(--accent); color:var(--accent-ink)}
+
+.wrap{max-width:1180px; margin:0 auto; padding-inline:16px; padding-block:20px 56px}
+
+/* ---------- workspace ---------- */
+.toolbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px}
+.search{
+  flex:1 1 200px; min-width:0; background:var(--surface);
+  border:1px solid var(--line-strong); border-radius:7px; padding:8px 11px;
+}
+.filters{display:flex; gap:6px; flex-wrap:wrap}
+.chipbtn{
+  background:var(--surface); border:1px solid var(--line-strong); color:var(--muted);
+  border-radius:99px; padding:5px 12px; font-size:12.5px;
+}
+.chipbtn[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--bg)}
+.btn{
+  background:var(--accent); color:var(--accent-ink); border:1px solid transparent;
+  border-radius:7px; padding:8px 15px; font-weight:600; font-size:14px;
+}
+.btn.ghost{background:var(--surface); color:var(--ink); border-color:var(--line-strong)}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.small{padding:5px 11px; font-size:13px; font-weight:500}
+
+.cols{display:grid; grid-template-columns:minmax(0,340px) minmax(0,1fr); gap:18px; align-items:start}
+@media (max-width:860px){ .cols{grid-template-columns:1fr} }
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:11px; box-shadow:var(--shadow)}
+.panel-head{
+  padding:11px 15px; border-bottom:1px solid var(--line);
+  font-size:11.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--faint);
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+
+.rows{list-style:none; margin:0; padding:0}
+.rows li+li{border-top:1px solid var(--line)}
+.row{
+  display:block; width:100%; text-align:left; background:transparent;
+  border:0; padding:12px 15px; display:grid; gap:3px;
+}
+.row:hover{background:var(--surface-2)}
+.row[aria-current="true"]{background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent)}
+.row .name{font-weight:600; font-size:14.5px}
+.row .name.pending{color:var(--muted); font-weight:500; font-style:italic}
+.row .meta{
+  font-family:var(--mono); font-size:11.5px; color:var(--faint);
+  display:flex; gap:9px; flex-wrap:wrap; align-items:center;
+}
+.empty{padding:26px 16px; text-align:center; color:var(--muted); font-size:14px}
+
+.chip{
+  display:inline-flex; align-items:center; gap:5px; border-radius:99px;
+  padding:2px 9px; font-size:11px; font-weight:600; font-family:var(--ui);
+  letter-spacing:.02em; white-space:nowrap;
+}
+.chip::before{content:""; width:5px; height:5px; border-radius:50%; background:currentColor}
+.chip.draft{background:var(--surface-2); color:var(--muted); box-shadow:inset 0 0 0 1px var(--line)}
+.chip.awaiting{background:var(--wait-soft); color:var(--wait)}
+.chip.details{background:var(--accent-soft); color:var(--accent)}
+.chip.issued{background:var(--ok-soft); color:var(--ok)}
+
+/* ---------- detail ---------- */
+.detail-head{padding:18px 20px; border-bottom:1px solid var(--line)}
+.detail-title{font-family:var(--display); font-size:25px; font-weight:700; line-height:1.15}
+.detail-title .heb{font-size:22px; color:var(--muted); margin-inline-start:9px}
+.detail-sub{margin-top:5px; color:var(--muted); font-size:13.5px}
+.section{padding:18px 20px; border-top:1px solid var(--line)}
+.section:first-of-type{border-top:0}
+.section h3{
+  font-size:11.5px; text-transform:uppercase; letter-spacing:.09em;
+  color:var(--faint); margin-bottom:11px; font-weight:600;
+}
+
+.linkbox{
+  background:var(--surface-2); border:1px dashed var(--line-strong);
+  border-radius:9px; padding:13px 15px; display:grid; gap:9px;
+}
+.code{
+  font-family:var(--mono); font-size:21px; font-weight:500;
+  letter-spacing:.14em; color:var(--accent);
+}
+.hint{font-size:12.5px; color:var(--muted); line-height:1.45}
+
+table.honors{width:100%; border-collapse:collapse; font-size:14px}
+table.honors th{
+  text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.07em;
+  color:var(--faint); font-weight:600; padding:0 10px 7px 0; border-bottom:1px solid var(--line);
+}
+table.honors td{padding:8px 10px 8px 0; border-bottom:1px solid var(--line); vertical-align:top}
+table.honors tr:last-child td{border-bottom:0}
+table.honors .role{color:var(--muted); width:42%}
+table.honors .who{font-weight:500}
+table.honors .who.blank{color:var(--faint); font-weight:400; font-style:italic}
+table.honors tr.grp td{
+  padding:14px 0 5px; border-bottom:1px solid var(--line-strong);
+  font-size:10.5px; text-transform:uppercase; letter-spacing:.11em;
+  color:var(--gold); font-weight:600;
+}
+table.honors tr.grp:first-child td{padding-top:4px}
+table.honors .step{
+  display:inline-block; min-width:17px; font-family:var(--mono);
+  font-size:11.5px; color:var(--faint);
+}
+
+/* ---------- certificate ---------- */
+.certwrap{overflow-x:auto}
+.cert{
+  min-width:420px; background:var(--surface); color:var(--ink);
+  border:1px solid var(--gold); border-radius:4px; padding:30px 34px;
+  position:relative; font-family:var(--display);
+}
+.cert::after{
+  content:""; position:absolute; inset:7px; border:1px solid var(--gold);
+  opacity:.4; border-radius:2px; pointer-events:none;
+}
+.cert .eyebrow{
+  font-family:var(--ui); font-size:10.5px; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--gold); text-align:center;
+}
+.cert .heb-title{text-align:center; font-size:27px; margin-top:7px; font-weight:700}
+.cert .child{text-align:center; font-size:31px; font-weight:700; margin-top:16px; line-height:1.2}
+.cert .child .h{display:block; font-size:25px; color:var(--muted); margin-top:3px}
+.cert .cert-body{
+  margin-top:20px; font-size:21px; line-height:2; text-align:center;
+  font-family:var(--display); color:var(--ink);
+}
+.cert .cert-body b{font-weight:700}
+.cert .slot{
+  display:inline-block; min-width:118px; border-bottom:1px dotted var(--line-strong);
+  vertical-align:baseline;
+}
+.cert .lines{
+  margin-top:16px; display:grid; gap:5px; font-size:14.5px;
+  font-family:var(--ui); text-align:center; color:var(--muted);
+}
+.cert .rule{height:1px; background:var(--gold); opacity:.5; margin:18px 0}
+.cert .cert-place{
+  font-family:var(--ui); font-size:13px; text-align:center;
+  color:var(--gold); margin-bottom:14px; letter-spacing:.01em;
+}
+.cert .honorlist{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:7px 22px;
+  font-family:var(--ui); font-size:13.5px;
+}
+.cert .honorlist div{display:flex; justify-content:space-between; gap:10px; border-bottom:1px dotted var(--line-strong); padding-bottom:3px}
+.cert .honorlist span:first-child{color:var(--muted)}
+.cert .honorlist span:last-child{font-weight:600; text-align:right}
+.cert .sign{
+  margin-top:22px; display:flex; justify-content:space-between; align-items:flex-end;
+  gap:18px; font-family:var(--ui); font-size:12.5px; color:var(--muted); flex-wrap:wrap;
+}
+.cert .sigline{border-top:1px solid var(--line-strong); padding-top:5px; min-width:180px}
+.cert .sigline strong{display:block; font-size:14px; color:var(--ink)}
+
+/* ---------- forms ---------- */
+.field{display:grid; gap:5px; margin-bottom:13px}
+.field label{font-size:12.5px; font-weight:600; color:var(--muted)}
+.field textarea{resize:vertical; min-height:74px; line-height:1.7}
+.hint code{
+  font-family:var(--mono); font-size:11.5px; background:var(--surface-2);
+  border:1px solid var(--line); border-radius:4px; padding:1px 5px; white-space:nowrap;
+}
+.field input, .field select, .field textarea{
+  background:var(--surface); border:1px solid var(--line-strong);
+  border-radius:7px; padding:9px 11px; width:100%;
+}
+.field input:focus, .field select:focus{border-color:var(--accent)}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 14px}
+@media (max-width:560px){ .grid2{grid-template-columns:1fr} }
+.check{display:flex; gap:8px; align-items:flex-start; font-size:13.5px; color:var(--muted)}
+.check input{width:auto; margin-top:3px}
+.actions{display:flex; gap:9px; flex-wrap:wrap; margin-top:6px}
+.note{
+  background:var(--accent-soft); border-radius:8px; padding:11px 13px;
+  font-size:13px; color:var(--ink); line-height:1.5;
+}
+
+/* ---------- family view ---------- */
+.family{max-width:680px; margin:0 auto}
+.family-hero{text-align:center; margin-bottom:22px}
+.family-hero .kicker{
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold);
+}
+.family-hero h2{font-family:var(--display); font-size:30px; margin-top:7px; font-weight:700}
+.family-hero p{color:var(--muted); margin-top:9px; font-size:15px}
+.honorrow{
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:10px;
+  align-items:center; padding:9px 0; border-bottom:1px solid var(--line);
+}
+.honorrow:last-child{border-bottom:0}
+.honorrow .rolename{font-size:14px}
+.honorrow .rolename small{display:block; color:var(--faint); font-size:11.5px; margin-top:1px}
+.honorrow .step{
+  display:inline-block; min-width:17px; font-family:var(--mono);
+  font-size:11.5px; color:var(--faint);
+}
+.grouphead{
+  margin:18px 0 4px; font-size:10.5px; text-transform:uppercase;
+  letter-spacing:.11em; color:var(--gold); font-weight:600;
+  border-bottom:1px solid var(--line-strong); padding-bottom:5px;
+}
+.grouphead:first-child{margin-top:0}
+.grouphead span{color:var(--faint); letter-spacing:.06em; font-weight:400; text-transform:none}
+.honorrow input{
+  background:var(--surface); border:1px solid var(--line-strong);
+  border-radius:7px; padding:7px 10px; width:100%;
+}
+@media (max-width:560px){ .honorrow{grid-template-columns:1fr; gap:5px} }
+.pairfields{display:grid; grid-template-columns:1fr 1fr; gap:7px}
+.withdel{display:flex; gap:6px; align-items:center}
+.withdel input{flex:1 1 auto; min-width:0}
+.delbtn{
+  flex:0 0 auto; background:var(--surface); color:var(--muted);
+  border:1px solid var(--line-strong); border-radius:7px;
+  width:32px; height:32px; font-size:17px; line-height:1;
+}
+.delbtn:hover{border-color:var(--accent); color:var(--accent)}
+@media (max-width:420px){ .pairfields{grid-template-columns:1fr} }
+
+.toast{
+  position:fixed; left:50%; transform:translateX(-50%);
+  bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+  background:var(--ink); color:var(--bg); padding:9px 17px; border-radius:99px;
+  font-size:13.5px; font-weight:500; z-index:60; box-shadow:var(--shadow);
+}
+.offline{
+  background:var(--wait-soft); color:var(--wait); font-size:12.5px;
+  padding:7px 14px; text-align:center; font-weight:500;
+}
+@media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important} }
+</style>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="mark">Brit<em>Honor</em></span>
+    <span class="sub" id="practiceName">Portal</span>
+  </div>
+  <div class="seg" role="group" aria-label="Choose view">
+    <button id="tabWork" aria-pressed="true">Mohel workspace</button>
+    <button id="tabFamily" aria-pressed="false">Family form</button>
+    <button id="tabMe" aria-pressed="false">My details</button>
+  </div>
+  <button class="btn small ghost" id="signIn" hidden>Mohel sign in</button>
+  <button class="btn small ghost" id="signOut" hidden>Sign out</button>
+</div>
+
+<div class="offline" id="offlineBar" hidden>Not connected — changes on this page are not being saved.</div>
+
+<div class="wrap">
+
+  <!-- ============ WORKSPACE ============ -->
+  <div id="viewWork">
+    <div class="toolbar">
+      <input class="search" id="search" type="search" placeholder="Search by child, family or code" aria-label="Search brissen">
+      <div class="filters" role="group" aria-label="Filter by status">
+        <button class="chipbtn" data-filter="all" aria-pressed="true">All</button>
+        <button class="chipbtn" data-filter="awaiting" aria-pressed="false">Awaiting family</button>
+        <button class="chipbtn" data-filter="details" aria-pressed="false">Ready to issue</button>
+        <button class="chipbtn" data-filter="issued" aria-pressed="false">Issued</button>
+      </div>
+      <select id="newKind" class="search" style="flex:0 0 auto" aria-label="Kind of bris">
+        <option value="infant">Baby</option>
+        <option value="adult">Adult (later in life)</option>
+        <option value="convert">Conversion</option>
+      </select>
+      <button class="btn" id="newBris">New bris</button>
+    </div>
+
+    <div class="cols">
+      <div class="panel">
+        <div class="panel-head"><span>Brissen</span><span id="countLabel"></span></div>
+        <ul class="rows" id="list"></ul>
+      </div>
+      <div class="panel" id="detail"></div>
+    </div>
+  </div>
+
+  <!-- ============ FAMILY ============ -->
+  <div id="viewFamily" hidden></div>
+
+  <!-- ============ MOHEL PROFILE ============ -->
+  <div id="viewMe" hidden></div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- domain ---------- */
+  var GROUPS = [
+    {key:"chain",     label:"Carrying the baby",  adultLabel:"At the bris", ordered:true},
+    {key:"naming",    label:"The naming",         ordered:false},
+    {key:"bentching", label:"Birchas haMazon",    ordered:false, optional:true},
+    {key:"custom",    label:"Other kibudim",      ordered:false, custom:true}
+  ];
+
+  var HONORS = [
+    {key:"kvatter_pair", group:"chain", label:"Kvatter & Kvatterin",
+     note:"Given to a pair — usually a couple, sometimes a mother and son. She carries the baby in and hands it over",
+     fields:[{key:"kvatterin", label:"Kvatterin"}, {key:"kvatter", label:"Kvatter"}]},
+    {key:"kisei",      group:"chain", label:"Kisei shel Eliyahu",
+     note:"Takes the baby from the kvatter and places it on the Kisei shel Eliyahu"},
+    {key:"kisei_av",   group:"chain", label:"Kisei shel Eliyahu to the father",
+     note:"Takes the baby from the chair and gives it to the father"},
+    {key:"sandek",     group:"chain", label:"Sandek",
+     note:"The father hands him the baby; he holds it during the bris"},
+    {key:"sandek_am",  group:"chain", label:"Sandek to the Sandek m'umad",
+     note:"After the bris, takes the baby from the sandek's hands"},
+    {key:"amidah",     group:"chain", label:"Sandek m'umad",
+     note:"Amidah l'brachos — holds the baby during the brachos"},
+    {key:"asher",      group:"naming", label:"ברכות",
+     note:"Both brachos — בורא פרי הגפן and אשר קידש ידיד מבטן"},
+    {key:"krias",      group:"naming", label:"Krias haShem",
+     note:"Says the naming"},
+    {key:"zimun",      group:"bentching", label:"Zimun", defaultTo:"mohel",
+     note:"Traditionally the mohel bentches — leave blank for him, or name someone else"},
+    {key:"harach_par", group:"bentching", label:"הרחמן — אבי הילד ואמו",   note:""},
+    {key:"harach_san", group:"bentching", label:"הרחמן — בעל ברית המילה",  note:""},
+    {key:"harach_chi", group:"bentching", label:"הרחמן — רך הנימול",       note:""},
+    {key:"harach_moh", group:"bentching", label:"הרחמן — המל בשר הערלה",   note:""},
+    {key:"harach_mas", group:"bentching", label:"הרחמן — משיחו",           note:""},
+    {key:"harach_koh", group:"bentching", label:"הרחמן — כהן צדק",         note:""}
+  ];
+
+  // The bracha and the naming are two kibudim, but many families give both to
+  // the same person. When they do, the pair collapses into a single kibud.
+  var NAMING_COMBINED = {
+    key:"asher", group:"naming", label:"ברכות and Krias haShem",
+    note:"One person says the brachos and the naming"
+  };
+
+  // Kinds of bris. A baby gets the full set of kibudim; a bris later in life
+  // (and a conversion) uses a shorter set — no kvatter and no carrying.
+  var KINDS = [
+    {v:"infant",  l:"Baby"},
+    {v:"adult",   l:"Adult (later in life)"},
+    {v:"convert", l:"Conversion"}
+  ];
+  var ADULT_KEYS   = ["sandek","asher","krias","zimun","harach_san","harach_moh","harach_mas","harach_koh"];
+  var CONVERT_KEYS = ["sandek","asher","krias","zimun"];
+  var ADULT_NOTES = {
+    sandek: "Holds his head during the bris. Offered first to the sponsor, if there is one and he agrees; otherwise he gives it to anyone he chooses",
+    asher:  "Says the brachos right after the bris"
+  };
+  function kindOf(r){ return (r && r.kind) || "infant"; }
+  function isAdult(r){ return kindOf(r) !== "infant"; }
+  function kindLabel(r){
+    var k = kindOf(r);
+    for (var i = 0; i < KINDS.length; i++) if (KINDS[i].v === k) return KINDS[i].l;
+    return "Baby";
+  }
+  function groupLabel(r, g){ return (isAdult(r) && g.adultLabel) ? g.adultLabel : g.label; }
+
+  function groupIncluded(r, key){
+    var g = GROUPS.filter(function(x){ return x.key === key; })[0];
+    if (!g || !g.optional) return true;
+    return !!(r && r.includeBentching);
+  }
+
+  function honorsFor(r){
+    var out = [];
+    var keep = kindOf(r) === "adult" ? ADULT_KEYS : kindOf(r) === "convert" ? CONVERT_KEYS : null;
+    HONORS.forEach(function(h){
+      if (keep && keep.indexOf(h.key) === -1) return;
+      if (keep && ADULT_NOTES[h.key]) h = Object.assign({}, h, {note: ADULT_NOTES[h.key]});
+      if (!groupIncluded(r, h.group)) return;
+      if (r && r.combineNaming){
+        if (h.key === "krias") return;
+        if (h.key === "asher") { out.push(NAMING_COMBINED); return; }
+      }
+      out.push(h);
+    });
+    (r && r.customHonors ? r.customHonors : []).forEach(function(c){
+      out.push({key:"c_" + c.id, group:"custom", label:c.label || "Kibud", note:""});
+    });
+    return out;
+  }
+
+  function inGroupFor(r, g){
+    return honorsFor(r).filter(function(h){ return h.group === g; });
+  }
+
+  // A kibud may be given to one person or, like the kvatter, to a couple.
+  function fieldsOf(h){
+    return h.fields || [{key:h.key, label:h.label}];
+  }
+  function honoreeOf(r, h){
+    var v = fieldsOf(h)
+      .map(function(f){ return (r.honors && r.honors[f.key]) || ""; })
+      .filter(Boolean)
+      .join(" & ");
+    // Some kibudim fall to the mohel unless the family names someone else.
+    if (!v && h.defaultTo === "mohel") return (r && r.mohel) || "";
+    return v;
+  }
+
+  var LANGUAGES = [
+    {v:"en", l:"English"},
+    {v:"he", l:"Hebrew — עברית"},
+    {v:"lk", l:"Loshon koydesh (traditional wording)"},
+    {v:"yi", l:"Yiddish — ייִדיש"},
+    {v:"es", l:"Spanish — Español"}
+  ];
+
+  var STATUS = {
+    draft:    {cls:"draft",    label:"Draft"},
+    awaiting: {cls:"awaiting", label:"Awaiting family"},
+    details:  {cls:"details",  label:"Ready to issue"},
+    issued:   {cls:"issued",   label:"Certificate issued"}
+  };
+
+  /* ---------- state ---------- */
+  var db = null, coll = null, dl = null, tdoc = null, pdoc = null, auth = null, user = null;
+
+  // The mohel's own details, kept once instead of retyped for every bris.
+  var profile = { practice:"", name:"", nameHebrew:"", place:"", phone:"" };
+
+  var DEFAULT_TEMPLATES = [{
+    id:"std", name:"Standard bris", title:"תעודת ברית",
+    body:'וענתה השורה הזאת לעד שהילד {שם} ני״ו בן {אבי} ו{אם}\n' +
+         'הנולד ביום {תאריך לידה} נימול כדת וכדין בבריתו של אברהם אבינו ' +
+         'ביום {תאריך ברית} הק׳ {מוהל} מוהל'
+  }, {
+    id:"adult", name:"Bris later in life", title:"תעודת ברית",
+    body:'וענתה השורה הזאת לעד ש{שם} בן {אבי} ו{אם}\n' +
+         'נימול כדת וכדין בבריתו של אברהם אבינו ' +
+         'ביום {תאריך ברית} הק׳ {מוהל} מוהל'
+  }];
+  function withDefaults(list){
+    var out = list.slice();
+    DEFAULT_TEMPLATES.forEach(function(d){
+      if (!out.some(function(t){ return t.id === d.id; })) out.push(Object.assign({}, d));
+    });
+    return out;
+  }
+  var templates = DEFAULT_TEMPLATES.map(function(t){ return Object.assign({}, t); });
+
+  var TOKENS = {
+    "שם":          function(r){ return r.childHebrew || r.childEnglish; },
+    "name":        function(r){ return r.childHebrew || r.childEnglish; },
+    "שם באנגלית":  function(r){ return r.childEnglish; },
+    "תאריך לידה":  function(r){ return r.hebrewDob; },
+    "dob":         function(r){ return r.hebrewDob; },
+    "תאריך ברית":  function(r){ return r.hebrewDate; },
+    "brisdate":    function(r){ return r.hebrewDate; },
+    "אבי":         function(r){ return r.fatherHebrew || r.father; },
+    "father":      function(r){ return r.fatherHebrew || r.father; },
+    "אם":          function(r){ return r.motherHebrew || r.mother; },
+    "mother":      function(r){ return r.motherHebrew || r.mother; },
+    "מקום":        function(r){ return r.place; },
+    "place":       function(r){ return r.place; },
+    "מוהל":        function(r){ return r.mohelHebrew || r.mohel; },
+    "mohel":       function(r){ return r.mohelHebrew || r.mohel; }
+  };
+
+  function templateFor(r){
+    var id = r && r.templateId;
+    for (var i = 0; i < templates.length; i++) if (templates[i].id === id) return templates[i];
+    if (isAdult(r)) for (var j = 0; j < templates.length; j++) if (templates[j].id === "adult") return templates[j];
+    return templates[0] || DEFAULT_TEMPLATES[0];
+  }
+
+  // Optional certificate number line; none is shown unless one is set on the record.
+  function certLabel(r){ return (r && r.certNo) ? "No. " + r.certNo : ""; }
+
+  function renderTemplate(r, body){
+    return String(body || "").split(/(\{[^}]*\})/).map(function(part){
+      var m = /^\{([^}]*)\}$/.exec(part);
+      if (!m) return esc(part).replace(/\n/g, "<br>");
+      var fn = TOKENS[m[1].trim()];
+      return slot(fn ? fn(r) : "");
+    }).join("");
+  }
+
+  function saveTemplates(){
+    if (!tdoc) return Promise.resolve();
+    return tdoc.set({ templates: templates }).catch(function(){
+      toast("Could not save the wording");
+    });
+  }
+  var records = [];       // array of {id, ...body}
+  var selectedId = null;
+  var filter = "all";
+  var query = "";
+  var view = "work";
+  var familyCode = "";
+
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+    });
+  };
+
+  function familyLink(r){
+    return location.origin + location.pathname.replace(/index\.html$/, "") + "#" + r.code;
+  }
+
+  function makeCode(){
+    var a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789", s = "";
+    for (var i=0;i<6;i++) s += a[Math.floor(Math.random()*a.length)];
+    return s;
+  }
+
+  function fmtDate(iso){
+    if (!iso) return "—";
+    var p = String(iso).split("-");
+    if (p.length !== 3) return iso;
+    var M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return M[Number(p[1])-1] + " " + Number(p[2]) + ", " + p[0];
+  }
+
+  function toast(msg){
+    var t = document.createElement("div");
+    t.className = "toast"; t.textContent = msg; t.setAttribute("role","status");
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 2600);
+  }
+
+  function blank(code, kind){
+    kind = kind || "infant";
+    return {
+      code: code, kind: kind,
+      childEnglish:"", childHebrew:"",
+      dob:"", brisDate:"", hebrewDob:"", hebrewDate:"", place:profile.place || "",
+      father:"", mother:"", fatherHebrew:"", motherHebrew:"", familyPhone:"",
+      namedAfter:"", namedAfterLiving:false,
+      combineNaming:false, includeBentching:false, customHonors:[],
+      templateId: kind === "infant" ? "std" : "adult",
+      language:"en",
+      honors:{},
+      status:"draft",
+      mohel:profile.name || "", mohelHebrew:profile.nameHebrew || "",
+      createdAt: new Date().toISOString(),
+      submittedAt:"", issuedAt:"", reissues:0
+    };
+  }
+
+  /* ---------- storage ---------- */
+  function persist(rec){
+    if (!coll) { render(); return Promise.resolve(); }
+    var body = {}; for (var k in rec) if (k !== "id") body[k] = rec[k];
+    if (user && !body.owner) body.owner = user.uid;
+    return coll.doc(rec.id).set(body).catch(function(e){
+      toast("Could not save: " + (e && e.code ? e.code : "error"));
+    });
+  }
+
+  function upsertLocal(id, body){
+    var found = false;
+    for (var i=0;i<records.length;i++){
+      if (records[i].id === id){ records[i] = Object.assign({id:id}, body); found = true; break; }
+    }
+    if (!found) records.push(Object.assign({id:id}, body));
+  }
+
+  function byId(id){
+    for (var i=0;i<records.length;i++) if (records[i].id === id) return records[i];
+    return null;
+  }
+  function byCode(code){
+    var c = String(code||"").toUpperCase().trim();
+    for (var i=0;i<records.length;i++) if ((records[i].code||"").toUpperCase() === c) return records[i];
+    return null;
+  }
+
+  /* ---------- workspace rendering ---------- */
+  function visible(){
+    var out = records.slice().sort(function(a,b){
+      return String(b.brisDate||b.createdAt||"").localeCompare(String(a.brisDate||a.createdAt||""));
+    });
+    if (filter !== "all") out = out.filter(function(r){ return r.status === filter; });
+    if (query){
+      var q = query.toLowerCase();
+      out = out.filter(function(r){
+        return [r.childEnglish, r.childHebrew, r.father, r.mother, r.code]
+          .join(" ").toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    return out;
+  }
+
+  function renderList(){
+    var items = visible();
+    $("countLabel").textContent = items.length + (items.length === 1 ? " record" : " records");
+    if (!items.length){
+      $("list").innerHTML = '<li><div class="empty">No brissen match. Start one with <strong>New bris</strong>.</div></li>';
+      return;
+    }
+    $("list").innerHTML = items.map(function(r){
+      var st = STATUS[r.status] || STATUS.draft;
+      var nm = r.childEnglish
+        ? '<span class="name">' + esc(r.childEnglish) + '</span>'
+        : '<span class="name pending">Awaiting the family</span>';
+      return '<li><button class="row" data-id="' + esc(r.id) + '" aria-current="' +
+        (r.id === selectedId) + '">' + nm +
+        '<span class="meta"><span>' + esc(r.code) + '</span><span>' + fmtDate(r.brisDate) + '</span>' +
+        '<span class="chip ' + st.cls + '">' + st.label + '</span></span></button></li>';
+    }).join("");
+  }
+
+  function honorsTable(r){
+    var body = GROUPS.map(function(g){
+      var n = 0;
+      if (!inGroupFor(r, g.key).length) return "";
+      return '<tr class="grp"><td colspan="2">' + esc(groupLabel(r, g)) + '</td></tr>' +
+        inGroupFor(r, g.key).map(function(h){
+          n++;
+          var who = honoreeOf(r, h);
+          return '<tr><td class="role">' +
+            (g.ordered && inGroupFor(r, g.key).length > 1 ? '<span class="step">' + n + '</span>' : '') +
+            '<span dir="auto">' + esc(h.label) + '</span></td><td class="who' + (who ? '' : ' blank') + '">' +
+            (who ? esc(who) : "not yet assigned") + '</td></tr>';
+        }).join("");
+    }).join("");
+    return '<table class="honors"><thead><tr><th class="role">Kibud</th>' +
+      '<th>Given to</th></tr></thead><tbody>' + body + '</tbody></table>';
+  }
+
+  // A value on the certificate, or a ruled blank to be filled in by hand.
+  function slot(v){
+    return v ? '<b>' + esc(v) + '</b>' : '<span class="slot"></span>';
+  }
+
+  function certificate(r){
+    var given = honorsFor(r).filter(function(h){ return honoreeOf(r, h); });
+    return '<div class="certwrap"><div class="cert">' +
+      '<div class="eyebrow">Certificate of Bris Milah</div>' +
+      '<div class="heb-title" dir="auto">' + esc(templateFor(r).title || "") + '</div>' +
+      '<p class="cert-body" dir="auto">' + renderTemplate(r, templateFor(r).body) + '</p>' +
+      '<div class="lines">' +
+        '<div>' + esc(r.childEnglish || "") + '</div>' +
+        '<div>Son of ' + esc(r.father || "—") + ' and ' + esc(r.mother || "—") + '</div>' +
+        '<div>Born ' + fmtDate(r.dob) + ' &nbsp;·&nbsp; Bris ' + fmtDate(r.brisDate) + '</div>' +
+        (r.namedAfter ? '<div>Named after ' + esc(r.namedAfter) + '</div>' : '') +
+      '</div>' +
+      '<div class="rule"></div>' +
+      (r.place ? '<div class="cert-place" dir="auto">' + esc(r.place) + '</div>' : '') +
+      (given.length
+        ? '<div class="honorlist">' + given.map(function(h){
+            return '<div><span dir="auto">' + esc(h.label) + '</span><span dir="auto">' + esc(honoreeOf(r, h)) + '</span></div>';
+          }).join("") + '</div>'
+        : '<div class="lines"><div>Honors appear here once the family fills in the form.</div></div>') +
+      (certLabel(r) ? '<div class="cert-no">' + esc(certLabel(r)) + '</div>' : '') +
+      '</div></div>';
+  }
+
+  function renderDetail(){
+    var r = byId(selectedId);
+    if (!r){
+      $("detail").innerHTML = '<div class="empty" style="padding:56px 20px">' +
+        'Choose a bris on the left, or start a new one.</div>';
+      return;
+    }
+    var st = STATUS[r.status] || STATUS.draft;
+    var h = '';
+    h += '<div class="detail-head">' +
+      '<div class="detail-title">' + esc(r.childEnglish || "Awaiting the family") +
+        (r.childHebrew ? '<span class="heb">' + esc(r.childHebrew) + '</span>' : '') + '</div>' +
+      '<div class="detail-sub">' + esc(r.father || "—") + ' &amp; ' + esc(r.mother || "—") +
+        ' &nbsp;·&nbsp; Bris ' + fmtDate(r.brisDate) +
+        ' &nbsp;·&nbsp; ' + esc(kindLabel(r)) +
+        ' &nbsp;·&nbsp; <span class="chip ' + st.cls + '">' + st.label + '</span></div>' +
+    '</div>';
+
+    h += '<div class="section"><h3>Family link</h3><div class="linkbox">' +
+      '<div class="code">' + esc(r.code) + '</div>' +
+      '<div class="hint">Send this link to ' + (isAdult(r) ? 'him' : 'the parents') + ': <strong>' + esc(familyLink(r)) + '</strong>. ' +
+      'It opens their form, where they fill in the names and honors themselves.</div>' +
+      (r.brisDate
+        ? '<div class="actions">' +
+            '<button class="btn small ghost" data-act="copy">Copy link</button>' +
+            '<button class="btn small ghost" data-act="openform">Open their form</button>' +
+            (r.status === "draft" ? '<button class="btn small" data-act="sent">Mark as sent</button>' : '') +
+          '</div>'
+        : '<div class="note">Set the date of the bris below first. The link goes out once the date is booked, so the guests can be invited.' +
+          (isAdult(r) ? ' For an adult, send it only if he is celebrating with guests.' : '') + '</div>') +
+      '</div></div>';
+
+    h += '<div class="section"><h3>Bris details</h3>' +
+      '<div class="field"><label for="f_kind">Kind of bris</label><select id="f_kind" data-field="kind">' +
+        KINDS.map(function(k){ return '<option value="' + k.v + '"' + (kindOf(r) === k.v ? ' selected' : '') + '>' + esc(k.l) + '</option>'; }).join("") +
+      '</select></div>' +
+      '<div class="grid2">' +
+        field("childEnglish","English name", r.childEnglish) +
+        field("childHebrew","Hebrew name", r.childHebrew) +
+        field("father","Father", r.father) +
+        field("mother","Mother", r.mother) +
+        field("fatherHebrew","Father — Hebrew name", r.fatherHebrew) +
+        field("motherHebrew","Mother — Hebrew name", r.motherHebrew) +
+        field("dob","Date of birth", r.dob, "date") +
+        field("brisDate","Date of the bris", r.brisDate, "date") +
+        field("hebrewDob","Hebrew date of birth (as printed)", r.hebrewDob) +
+        field("hebrewDate","Hebrew date of the bris (as printed)", r.hebrewDate) +
+        field("mohel","Mohel", r.mohel) +
+        field("mohelHebrew","Mohel — Hebrew name (for the certificate)", r.mohelHebrew) +
+        field("place","Where the bris took place (as printed)", r.place) +
+      '</div></div>';
+
+    var all = honorsFor(r);
+    var assigned = all.filter(function(x){ return honoreeOf(r, x); }).length;
+    h += '<div class="section"><h3>Kibudim</h3>' + honorsTable(r) +
+      '<div class="actions" style="margin-top:13px; align-items:center">' +
+        (dl ? '<button class="btn ghost small" data-act="dlpdf">Download PDF to print</button>' +
+              '<button class="btn ghost small" data-act="dlhonors">Download as CSV</button>' : '') +
+        '<span class="hint">' + assigned + ' of ' + all.length + ' given out · ' +
+        (all.length - assigned) + ' still available</span>' +
+      '</div></div>';
+
+    h += '<div class="section"><h3>Certificate wording</h3>' + templateEditor(r) + '</div>';
+
+    h += '<div class="section"><h3>Certificate preview</h3>' + certificate(r) +
+      '<div class="actions" style="margin-top:14px">' +
+        (r.status === "issued"
+          ? '<button class="btn ghost" data-act="reissue">Reissue a copy</button>' +
+            '<span class="hint" style="align-self:center">Issued ' + fmtDate((r.issuedAt||"").slice(0,10)) +
+            (r.reissues ? ' · ' + r.reissues + ' reissue' + (r.reissues>1?'s':'') : '') + '</span>'
+          : '<button class="btn" data-act="issue">Mark certificate issued</button>') +
+      '</div></div>';
+
+    $("detail").innerHTML = h;
+  }
+
+  function kibudimCsv(r){
+    var q = function(v){ return '"' + String(v == null ? "" : v).replace(/"/g,'""') + '"'; };
+    var rows = [["Part of the bris","Kibud","Honoree"].map(q).join(",")];
+    GROUPS.forEach(function(g){
+      inGroupFor(r, g.key).forEach(function(h){
+        rows.push([groupLabel(r, g), h.label, honoreeOf(r, h)].map(q).join(","));
+      });
+    });
+    // BOM so Hebrew names open correctly in Excel
+    return "﻿" + rows.join("\r\n") + "\r\n";
+  }
+
+  // Draws the kibudim sheet onto a canvas at print resolution, then wraps it
+  // in a PDF. Canvas handles Hebrew and right-to-left text the way the browser
+  // does, which avoids embedding fonts and hand-rolling bidi in the PDF itself.
+  function kibudimCanvas(r){
+    var W = 1700, H = 2200, M = 160;      // 8.5 x 11 at 200dpi
+    var c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    var x = c.getContext("2d");
+
+    var INK = "#1A171B", MUTED = "#6E6569", FAINT = "#9A9096",
+        GOLD = "#8C6D33", LINE = "#D8D2D2";
+
+    x.fillStyle = "#FFFFFF"; x.fillRect(0, 0, W, H);
+
+    var y = M;
+    x.textBaseline = "alphabetic";
+
+    x.fillStyle = GOLD; x.font = '500 26px "IBM Plex Sans", sans-serif';
+    x.fillText("K I B U D I M", M, y); y += 58;
+
+    x.fillStyle = INK; x.font = '700 76px "Frank Ruhl Libre", Georgia, serif';
+    x.fillText(r.childEnglish || "Bris", M, y); y += 20;
+
+    if (r.childHebrew){
+      x.fillStyle = MUTED; x.font = '400 46px "Frank Ruhl Libre", Georgia, serif';
+      y += 44; x.fillText(r.childHebrew, M, y);
+    }
+    y += 46;
+
+    x.fillStyle = MUTED; x.font = '400 30px "IBM Plex Sans", sans-serif';
+    var sub = [];
+    if (r.father || r.mother) sub.push([r.father, r.mother].filter(Boolean).join(" & "));
+    if (r.brisDate) sub.push(fmtDate(r.brisDate));
+    if (r.hebrewDate) sub.push(r.hebrewDate);
+    if (sub.length) { x.fillText(sub.join("   ·   "), M, y); y += 44; }
+
+    y += 14;
+    x.strokeStyle = GOLD; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(M, y); x.lineTo(W - M, y); x.stroke();
+    y += 58;
+
+    GROUPS.forEach(function(g){
+      x.fillStyle = GOLD; x.font = '600 24px "IBM Plex Sans", sans-serif';
+      x.textAlign = "left";
+      if (!inGroupFor(r, g.key).length) return;
+      x.fillText(groupLabel(r, g).toUpperCase(), M, y);
+      y += 16;
+      x.strokeStyle = LINE; x.lineWidth = 1.5;
+      x.beginPath(); x.moveTo(M, y); x.lineTo(W - M, y); x.stroke();
+      y += 48;
+
+      var n = 0;
+      inGroupFor(r, g.key).forEach(function(h){
+        n++;
+        var who = honoreeOf(r, h);
+        var label = (g.ordered && inGroupFor(r, g.key).length > 1 ? n + ".  " : "") + h.label;
+
+        x.textAlign = "left";
+        x.fillStyle = INK; x.font = '400 32px "IBM Plex Sans", sans-serif';
+        x.fillText(label, M, y);
+        var lw = x.measureText(label).width;
+
+        x.textAlign = "right";
+        if (who){
+          x.fillStyle = INK; x.font = '600 32px "IBM Plex Sans", sans-serif';
+        } else {
+          x.fillStyle = FAINT; x.font = '400 30px "IBM Plex Sans", sans-serif';
+        }
+        var shown = who || "—";
+        x.fillText(shown, W - M, y);
+        var rw = x.measureText(shown).width;
+
+        // dotted leader between the two columns
+        var from = M + lw + 18, to = W - M - rw - 18;
+        if (to > from){
+          x.save();
+          x.strokeStyle = LINE; x.lineWidth = 2; x.setLineDash([3, 9]);
+          x.beginPath(); x.moveTo(from, y - 9); x.lineTo(to, y - 9); x.stroke();
+          x.restore();
+        }
+        y += 60;
+      });
+      y += 34;
+    });
+
+    x.textAlign = "left";
+    x.fillStyle = FAINT; x.font = '400 24px "IBM Plex Sans", sans-serif';
+    x.fillText(r.mohel || "", M, H - M + 20);
+    x.textAlign = "right";
+    x.fillText("brithonor.com", W - M, H - M + 20);
+
+    return c;
+  }
+
+  function downloadKibudimPdf(r){
+    if (!dl) { toast("Downloads are not available in this view"); return; }
+    var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDFctor){ toast("The PDF library did not load"); return; }
+
+    var go = function(){
+      var canvas = kibudimCanvas(r);
+      var pdf = new jsPDFctor({ unit: "pt", format: "letter", orientation: "portrait" });
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, 612, 792, undefined, "FAST");
+      var stem = (r.childEnglish || r.code || "kibudim")
+        .replace(/[^A-Za-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      dl.save({ filename: "kibudim-" + stem + ".pdf", data: pdf.output("blob") })
+        .then(function(){ toast("Kibudim sheet saved"); })
+        .catch(function(e){
+          var c = e && e.code;
+          if (c === "declined") return;
+          toast(c === "rate_limited" ? "One download at a time — try again"
+                                     : "Could not save the sheet");
+        });
+    };
+
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(go, go);
+    else go();
+  }
+
+  function downloadKibudim(r){
+    if (!dl) { toast("Downloads are not available in this view"); return; }
+    var stem = (r.childEnglish || r.code || "kibudim").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"");
+    dl.save({ filename: "kibudim-" + stem + ".csv", data: kibudimCsv(r) })
+      .then(function(){ toast("Kibudim list saved"); })
+      .catch(function(e){
+        var c = e && e.code;
+        if (c === "declined") return;
+        toast(c === "rate_limited" ? "One download at a time — try again" : "Could not save the list");
+      });
+  }
+
+  function templateEditor(r){
+    var t = templateFor(r);
+    return '<div class="field"><label for="tplSel">Wording for this bris</label>' +
+      '<select id="tplSel">' + templates.map(function(x){
+        return '<option value="' + esc(x.id) + '"' + (x.id === t.id ? " selected" : "") +
+          '>' + esc(x.name || "Untitled") + '</option>';
+      }).join("") + '</select></div>' +
+      '<div class="grid2">' +
+        '<div class="field"><label for="tplName">Template name</label>' +
+        '<input id="tplName" value="' + esc(t.name || "") + '"></div>' +
+        '<div class="field"><label for="tplTitle">Heading</label>' +
+        '<input id="tplTitle" dir="auto" value="' + esc(t.title || "") + '"></div>' +
+      '</div>' +
+      '<div class="field"><label for="tplBody">Text</label>' +
+      '<textarea id="tplBody" rows="3" dir="auto">' + esc(t.body || "") + '</textarea></div>' +
+      '<p class="hint">Placeholders, filled in automatically: ' +
+      '<code>{שם}</code> <code>{תאריך לידה}</code> <code>{תאריך ברית}</code> ' +
+      '<code>{מקום}</code> <code>{אבי}</code> <code>{אם}</code> <code>{מוהל}</code>. ' +
+      'Anything left empty prints as a blank line to fill in by hand.</p>' +
+      '<div class="actions">' +
+        '<button class="btn small" data-act="tplsave">Save wording</button>' +
+        '<button class="btn ghost small" data-act="tplnew">New template</button>' +
+        (templates.length > 1
+          ? '<button class="btn ghost small" data-act="tpldel">Delete this one</button>' : '') +
+      '</div>';
+  }
+
+  function field(name, label, value, type){
+    return '<div class="field"><label for="f_' + name + '">' + esc(label) + '</label>' +
+      '<input id="f_' + name + '" data-field="' + name + '" type="' + (type||"text") +
+      '" value="' + esc(value||"") + '"></div>';
+  }
+
+  /* ---------- family form ---------- */
+  function renderFamily(){
+    var r = familyCode ? byCode(familyCode) : null;
+    var h = '<div class="family">';
+
+    if (!r){
+      h += '<div class="family-hero"><div class="kicker">For the family</div>' +
+        '<h2>Enter your code</h2>' +
+        '<p>Your mohel gave you a six-character code. It opens the form where you choose ' +
+        'who receives each honor at the bris.</p></div>' +
+        '<div class="panel"><div class="section">' +
+        '<div class="field"><label for="codeIn">Your code</label>' +
+        '<input id="codeIn" placeholder="e.g. K4MPQ7" autocomplete="off" ' +
+        'style="font-family:var(--mono); letter-spacing:.14em; text-transform:uppercase"></div>' +
+        '<div class="actions"><button class="btn" id="codeGo">Open my form</button></div>' +
+        (familyCode ? '<p class="hint" style="margin-top:11px">No bris found for that code. ' +
+          'Check it with your mohel.</p>' : '') +
+        '</div></div>';
+      $("viewFamily").innerHTML = h + '</div>';
+      var go = $("codeGo");
+      if (go) go.addEventListener("click", function(){
+        familyCode = ($("codeIn").value || "").toUpperCase().trim();
+        watchFamily(familyCode);
+        renderFamily();
+      });
+      return;
+    }
+
+    var adult = isAdult(r);
+    h += '<div class="family-hero"><div class="kicker">' + (adult && !r.childEnglish ? 'Your bris' : 'Bris of') + '</div>' +
+      '<h2>' + esc(r.childEnglish || (adult ? "Welcome" : "your son")) + '</h2>' +
+      '<p>Fill in the names below. Everything you enter appears on the honor cards ' +
+      'and on the certificate you receive afterwards.</p></div>';
+
+    h += '<div class="panel"><div class="section"><h3>' + (adult ? 'About you' : 'The baby') + '</h3><div class="grid2">' +
+      ffield("childEnglish", adult ? "Your English name" : "English name", r.childEnglish) +
+      ffield("childHebrew", adult ? "Your Hebrew name" : "Hebrew name", r.childHebrew) +
+      ffield("dob","Date of birth", r.dob, "date") +
+      ffield("familyPhone","Your phone", r.familyPhone, "tel") +
+    '</div>' +
+    '</div><div class="section"><h3>' + (adult ? 'Your parents <span style="text-transform:none;letter-spacing:0">(optional — for the certificate)</span>' : 'The parents') + '</h3><div class="grid2">' +
+      ffield("father","Father", r.father) +
+      ffield("mother","Mother", r.mother) +
+      ffield("fatherHebrew","Father — Hebrew name", r.fatherHebrew) +
+      ffield("motherHebrew","Mother — Hebrew name", r.motherHebrew) +
+    '</div>' +
+    (adult ? '' :
+    ffield("namedAfter","Named after (optional)", r.namedAfter) +
+    '<label class="check"><input type="checkbox" id="afterLiving"' +
+      (r.namedAfterLiving ? " checked" : "") + '>' +
+      '<span>Named after someone still living — the wording changes accordingly.</span></label>') +
+    '</div>';
+
+    h += '<div class="section"><h3>Card language</h3>' +
+      '<div class="field"><label for="langSel">Language for the cards and certificate</label>' +
+      '<select id="langSel">' + LANGUAGES.map(function(L){
+        return '<option value="' + L.v + '"' + (r.language === L.v ? " selected" : "") + '>' +
+          esc(L.l) + '</option>';
+      }).join("") + '</select></div></div>';
+
+    h += '<div class="section"><h3>Who receives each kibud</h3>' +
+      '<p class="hint" style="margin-bottom:13px">Leave any kibud blank if you are ' +
+      'not giving it out. You can come back and change these until the day of the bris.</p>' +
+      GROUPS.map(function(g){
+        var n = 0;
+        if (g.custom){
+          var list = (r.customHonors || []).map(function(c){
+            return '<div class="honorrow customrow">' +
+              '<input data-clabel="' + esc(c.id) + '" value="' + esc(c.label || "") +
+                '" placeholder="Name of the kibud" dir="auto">' +
+              '<div class="withdel">' +
+                '<input data-honor="c_' + esc(c.id) + '" value="' +
+                  esc((r.honors && r.honors["c_" + c.id]) || "") + '" placeholder="Name">' +
+                '<button class="delbtn" data-delcustom="' + esc(c.id) +
+                  '" title="Remove this kibud" aria-label="Remove this kibud">&times;</button>' +
+              '</div></div>';
+          }).join("");
+          return '<div class="grouphead">' + esc(g.label) + '</div>' +
+            '<p class="hint" style="margin:0 0 10px">Anything your mohel gives out ' +
+            'that is not listed above.</p>' + list +
+            '<div class="actions" style="margin-top:10px">' +
+            '<button class="btn ghost small" id="addCustom">Add a kibud</button></div>';
+        }
+        if (g.optional && !groupIncluded(r, g.key)){
+          return '<div class="grouphead">' + esc(g.label) + '</div>' +
+            '<label class="check" style="margin:9px 0 4px"><input type="checkbox" ' +
+            'id="includeBentching"><span>We are giving out the Birchas haMazon ' +
+            'kibudim too &mdash; these are said after the seudah</span></label>';
+        }
+        if (!inGroupFor(r, g.key).length) return "";
+        return '<div class="grouphead">' + esc(groupLabel(r, g)) +
+          (g.ordered && inGroupFor(r, g.key).length > 1 ? ' <span>in order</span>' : '') + '</div>' +
+          (g.optional
+            ? '<label class="check" style="margin:9px 0 4px"><input type="checkbox" ' +
+              'id="includeBentching" checked><span>We are giving out these kibudim' +
+              '</span></label>' +
+              '<p class="hint" style="margin:0 0 10px">Each one goes to whoever ' +
+              'will say it aloud.</p>'
+            : '') +
+          (g.key === "naming"
+            ? '<label class="check" style="margin:9px 0 4px"><input type="checkbox" ' +
+              'id="combineNaming"' + (r.combineNaming ? " checked" : "") + '>' +
+              '<span>The same person says the brachos and the naming</span></label>'
+            : '') +
+          inGroupFor(r, g.key).map(function(hn){
+            n++;
+            var fs = fieldsOf(hn);
+            var inputs = fs.map(function(f){
+              var v = (r.honors && r.honors[f.key]) || "";
+              var ph = fs.length > 1 ? f.label
+                     : (hn.defaultTo === "mohel" && r.mohel) ? r.mohel : "Name";
+              return '<input data-honor="' + f.key + '" value="' + esc(v) +
+                '" placeholder="' + esc(ph) + '">';
+            }).join("");
+            return '<div class="honorrow"><div class="rolename">' +
+              (g.ordered && inGroupFor(r, g.key).length > 1 ? '<span class="step">' + n + '</span>' : '') + '<span dir="auto">' + esc(hn.label) + '</span>' +
+              (hn.note ? '<small dir="auto">' + esc(hn.note) + '</small>' : '') + '</div>' +
+              (fs.length > 1 ? '<div class="pairfields">' + inputs + '</div>' : inputs) + '</div>';
+          }).join("");
+      }).join("") + '</div>';
+
+    h += '<div class="section">' +
+      '<div class="note">Nothing is sent until you press save. Your mohel sees your ' +
+      'answers as soon as you do.</div>' +
+      '<div class="actions" style="margin-top:13px">' +
+      '<button class="btn" id="familySave">Save and send to the mohel</button>' +
+      (dl ? '<button class="btn ghost" id="familyPdf">Download the list to print</button>' : '') +
+      '<button class="btn ghost" id="familyBack">Use a different code</button></div></div></div>';
+
+    $("viewFamily").innerHTML = h + '</div>';
+
+    $("familyBack").addEventListener("click", function(){ familyCode = ""; renderFamily(); });
+
+    var addBtn = $("addCustom");
+    if (addBtn) addBtn.addEventListener("click", function(){
+      var rec = byCode(familyCode); if (!rec) return;
+      captureFamilyInputs(rec);
+      rec.customHonors = rec.customHonors || [];
+      rec.customHonors.push({ id: "k" + Date.now().toString(36), label: "" });
+      renderFamily();
+      var inputs = $("viewFamily").querySelectorAll("[data-clabel]");
+      if (inputs.length) inputs[inputs.length - 1].focus();
+    });
+
+    $("viewFamily").addEventListener("click", function(e){
+      var del = e.target.closest("[data-delcustom]");
+      if (!del) return;
+      var rec = byCode(familyCode); if (!rec) return;
+      var id = del.getAttribute("data-delcustom");
+      captureFamilyInputs(rec);
+      rec.customHonors = (rec.customHonors || []).filter(function(c){ return c.id !== id; });
+      delete rec.honors["c_" + id];
+      renderFamily();
+    });
+
+    var ibEl = $("includeBentching");
+    if (ibEl) ibEl.addEventListener("change", function(){
+      var rec = byCode(familyCode); if (!rec) return;
+      captureFamilyInputs(rec);
+      rec.includeBentching = ibEl.checked;
+      renderFamily();
+    });
+
+    var cnEl = $("combineNaming");
+    if (cnEl) cnEl.addEventListener("change", function(){
+      var rec = byCode(familyCode); if (!rec) return;
+      captureFamilyInputs(rec);           // keep whatever they've typed so far
+      rec.combineNaming = cnEl.checked;
+      renderFamily();
+    });
+    var fp = $("familyPdf");
+    if (fp) fp.addEventListener("click", function(){
+      var rec = byCode(familyCode); if (rec) downloadKibudimPdf(rec);
+    });
+    $("familySave").addEventListener("click", function(){
+      var rec = byCode(familyCode); if (!rec) return;
+      captureFamilyInputs(rec);
+      if ($("afterLiving")) rec.namedAfterLiving = $("afterLiving").checked;
+      var cn = $("combineNaming");
+      if (cn) rec.combineNaming = cn.checked;
+      var ib = $("includeBentching");
+      if (ib) rec.includeBentching = ib.checked;
+      rec.language = $("langSel").value;
+      rec.submittedAt = new Date().toISOString();
+      if (rec.status !== "issued") rec.status = "details";
+      persist(rec);
+      render();
+      toast("Sent to your mohel");
+    });
+  }
+
+  function captureFamilyInputs(rec){
+    var root = $("viewFamily");
+    root.querySelectorAll("[data-field]").forEach(function(el){
+      rec[el.getAttribute("data-field")] = el.value;
+    });
+    rec.honors = rec.honors || {};
+    root.querySelectorAll("[data-honor]").forEach(function(el){
+      var k = el.getAttribute("data-honor"), v = el.value.trim();
+      if (v) rec.honors[k] = v; else delete rec.honors[k];
+    });
+    root.querySelectorAll("[data-clabel]").forEach(function(el){
+      var id = el.getAttribute("data-clabel");
+      (rec.customHonors || []).forEach(function(c){
+        if (c.id === id) c.label = el.value.trim();
+      });
+    });
+  }
+
+  function ffield(name, label, value, type){
+    return '<div class="field"><label for="ff_' + name + '">' + esc(label) + '</label>' +
+      '<input id="ff_' + name + '" data-field="' + name + '" type="' + (type||"text") +
+      '" value="' + esc(value||"") + '"></div>';
+  }
+
+  /* ---------- mohel profile ---------- */
+  function renderProfile(){
+    $("viewMe").innerHTML =
+      '<div class="family"><div class="panel">' +
+      '<div class="section"><h3>Your details</h3>' +
+      '<p class="hint" style="margin-bottom:13px">Filled in once. Every new bris ' +
+      'starts from these, and you can still change them on an individual bris.</p>' +
+      '<div class="grid2">' +
+        pfield("practice","Practice name (shown in the header)", profile.practice) +
+        pfield("phone","Phone", profile.phone, "tel") +
+        pfield("name","Your name", profile.name) +
+        pfield("nameHebrew","Your name in Hebrew (for the certificate)", profile.nameHebrew) +
+      '</div>' +
+      pfield("place","Usual place of the bris (as printed)", profile.place) +
+      '<div class="actions"><button class="btn" id="saveProfile">Save my details</button></div>' +
+      '</div></div></div>';
+
+    $("saveProfile").addEventListener("click", function(){
+      $("viewMe").querySelectorAll("[data-p]").forEach(function(el){
+        profile[el.getAttribute("data-p")] = el.value;
+      });
+      if (pdoc) pdoc.set(profile).catch(function(){ toast("Could not save your details"); });
+      $("practiceName").textContent = profile.practice || "Portal";
+      toast("Saved");
+    });
+  }
+
+  function pfield(name, label, value, type){
+    return '<div class="field"><label for="p_' + name + '">' + esc(label) + '</label>' +
+      '<input id="p_' + name + '" data-p="' + name + '" dir="auto" type="' +
+      (type || "text") + '" value="' + esc(value || "") + '"></div>';
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    var mohel = !!user;
+    if (!mohel) view = "family";
+    $("tabWork").parentNode.hidden = !mohel;
+    $("signIn").hidden = mohel || !auth;
+    $("signOut").hidden = !mohel;
+    $("viewWork").hidden = (view !== "work");
+    $("viewFamily").hidden = (view !== "family");
+    $("viewMe").hidden = (view !== "me");
+    $("tabWork").setAttribute("aria-pressed", String(view === "work"));
+    $("tabFamily").setAttribute("aria-pressed", String(view === "family"));
+    $("tabMe").setAttribute("aria-pressed", String(view === "me"));
+    if (view === "work"){ renderList(); renderDetail(); }
+    else if (view === "me") renderProfile();
+    else renderFamily();
+  }
+
+  /* ---------- events ---------- */
+  $("tabWork").addEventListener("click", function(){ view = "work"; render(); });
+  $("tabFamily").addEventListener("click", function(){ view = "family"; render(); });
+  $("tabMe").addEventListener("click", function(){ view = "me"; render(); });
+
+  $("search").addEventListener("input", function(e){ query = e.target.value; renderList(); });
+
+  document.querySelectorAll(".chipbtn").forEach(function(b){
+    b.addEventListener("click", function(){
+      filter = b.getAttribute("data-filter");
+      document.querySelectorAll(".chipbtn").forEach(function(o){
+        o.setAttribute("aria-pressed", String(o === b));
+      });
+      renderList();
+    });
+  });
+
+  $("newBris").addEventListener("click", function(){
+    var rec = blank(makeCode(), $("newKind").value);
+    rec.id = rec.code;
+    records.push(rec);
+    selectedId = rec.id;
+    persist(rec);
+    render();
+    toast("New bris created — code " + rec.code);
+  });
+
+  $("list").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-id]");
+    if (!btn) return;
+    selectedId = btn.getAttribute("data-id");
+    render();
+  });
+
+  $("detail").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    var r = byId(selectedId); if (!r) return;
+    var act = btn.getAttribute("data-act");
+
+    if (act === "copy"){
+      var done = function(){ toast("Link copied — " + familyLink(r)); };
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(familyLink(r)).then(done, function(){
+          toast("Copy blocked — the code is " + r.code);
+        });
+      } else toast("The code is " + r.code);
+    }
+    else if (act === "openform"){ view = "family"; familyCode = r.code; render(); }
+    else if (act === "sent"){ r.status = "awaiting"; persist(r); render(); toast("Marked as sent"); }
+    else if (act === "issue"){
+      r.status = "issued"; r.issuedAt = new Date().toISOString();
+      persist(r); render(); toast("Certificate marked issued");
+    }
+    else if (act === "dlhonors"){ downloadKibudim(r); }
+    else if (act === "dlpdf"){ downloadKibudimPdf(r); }
+    else if (act === "tplsave"){
+      var t = templateFor(r);
+      t.name = $("tplName").value.trim() || "Untitled";
+      t.title = $("tplTitle").value;
+      t.body = $("tplBody").value;
+      saveTemplates(); render(); toast("Wording saved");
+    }
+    else if (act === "tplnew"){
+      var nt = { id: "t" + Date.now().toString(36), name: "New wording",
+                 title: templateFor(r).title, body: "" };
+      templates.push(nt);
+      r.templateId = nt.id;
+      saveTemplates(); persist(r); render();
+    }
+    else if (act === "tpldel"){
+      var cur = templateFor(r).id;
+      templates = templates.filter(function(x){ return x.id !== cur; });
+      r.templateId = templates[0] ? templates[0].id : "";
+      saveTemplates(); persist(r); render(); toast("Template deleted");
+    }
+    else if (act === "reissue"){
+      r.reissues = (r.reissues || 0) + 1;
+      persist(r); render(); toast("Reissue logged");
+    }
+  });
+
+  $("detail").addEventListener("change", function(e){
+    if (e.target && e.target.id === "tplSel"){
+      var rr = byId(selectedId);
+      if (rr){ rr.templateId = e.target.value; persist(rr); render(); }
+      return;
+    }
+    var el = e.target.closest("[data-field]");
+    if (!el) return;
+    var r = byId(selectedId); if (!r) return;
+    var fk = el.getAttribute("data-field");
+    r[fk] = el.value;
+    if (fk === "brisDate"){ persist(r); render(); return; }
+    if (fk === "kind"){
+      // switch the certificate wording along with the kind, unless a custom one was picked
+      if (r.templateId === "std" || r.templateId === "adult") r.templateId = (el.value === "infant") ? "std" : "adult";
+      persist(r); render(); return;
+    }
+    persist(r);
+    renderList();
+  });
+
+  // Enter should walk down the form, not sit there doing nothing.
+  function enterMovesOn(container){
+    container.addEventListener("keydown", function(e){
+      if (e.key !== "Enter" || e.shiftKey) return;
+      var el = e.target;
+      if (!el || el.tagName !== "INPUT" || el.type === "checkbox") return;
+      e.preventDefault();
+      var fields = Array.prototype.filter.call(
+        container.querySelectorAll("input, select, textarea"),
+        function(n){ return !n.disabled && n.type !== "hidden" && n.offsetParent !== null; });
+      var i = fields.indexOf(el);
+      if (i > -1 && i + 1 < fields.length) fields[i + 1].focus();
+      else el.blur();
+    });
+  }
+  enterMovesOn($("viewFamily"));
+  enterMovesOn($("detail"));
+  enterMovesOn($("viewMe"));
+
+  /* ---------- boot ---------- */
+  render();
+
+  var hash = (location.hash || "").replace("#","").trim();
+  if (/^[A-Za-z0-9]{4,10}$/.test(hash)){ view = "family"; familyCode = hash.toUpperCase(); }
+
+  /* Downloads: an ordinary browser download */
+  dl = {
+    save: function(o){
+      try {
+        var blob = o.data instanceof Blob ? o.data : new Blob([o.data], {type: "text/csv;charset=utf-8"});
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob); a.download = o.filename;
+        document.body.appendChild(a); a.click();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        return Promise.resolve();
+      } catch (e) { return Promise.reject(e); }
+    }
+  };
+
+  var cfg = window.FIREBASE_CONFIG;
+  if (!window.firebase || !cfg || !cfg.apiKey){
+    $("offlineBar").hidden = false; render();
+    return;
+  }
+  firebase.initializeApp(cfg);
+  auth = firebase.auth();
+  db = firebase.firestore();
+  coll = db.collection("brissen");
+  var unsub = [];
+  function stopAll(){ unsub.forEach(function(f){ try{ f(); }catch(e){} }); unsub = []; }
+
+  window.watchFamily = watchFamily;
+  function watchFamily(code){
+    if (!code || user || !coll) return;
+    stopAll();
+    unsub.push(coll.doc(code).onSnapshot(function(snap){
+      records = snap.exists ? [Object.assign({id: snap.id}, snap.data() || {})] : [];
+      render();
+    }, function(){ records = []; render(); }));
+  }
+
+  $("signIn").addEventListener("click", function(){
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(function(e){
+      if (e && e.code === "auth/popup-closed-by-user") return;
+      toast("Could not sign in");
+    });
+  });
+  $("signOut").addEventListener("click", function(){ auth.signOut(); });
+
+  auth.onAuthStateChanged(function(u){
+    stopAll(); records = []; selectedId = null;
+    user = u || null;
+    if (!user){
+      profile = { practice:"", name:"", nameHebrew:"", place:"", phone:"" };
+      $("practiceName").textContent = "";
+      pdoc = tdoc = null;
+      render();
+      if (familyCode) watchFamily(familyCode);
+      return;
+    }
+    if (!familyCode) view = "work";
+    pdoc = db.collection("mohalim").doc(user.uid);
+    tdoc = pdoc.collection("settings").doc("certificate");
+    unsub.push(pdoc.onSnapshot(function(snap){
+      if (!snap.exists) return;
+      profile = Object.assign(profile, snap.data() || {});
+      $("practiceName").textContent = profile.practice || "";
+      if (view === "me") renderProfile();
+    }, function(){}));
+    unsub.push(tdoc.onSnapshot(function(snap){
+      var data = snap.exists ? snap.data() : null;
+      if (data && data.templates && data.templates.length){
+        templates = withDefaults(data.templates);
+        render();
+      }
+    }, function(){}));
+    unsub.push(coll.where("owner", "==", user.uid).onSnapshot(function(snap){
+      records = snap.docs.map(function(doc){
+        return Object.assign({id:doc.id}, doc.data() || {});
+      });
+      if (!selectedId && records.length) selectedId = visible().length ? visible()[0].id : records[0].id;
+      render();
+    }, function(e){
+      if (e && e.code === "permission-denied"){
+        toast("This account is not set up as a mohel");
+        auth.signOut();
+      } else { $("offlineBar").hidden = false; }
+    }));
+    render();
+  });
+})();
+</script>
+
+</body></html>
